@@ -163,3 +163,11 @@ update-license-headers: ## Update license headers for all files
 	@docker buildx build -o . --progress=plain --platform=linux/amd64 --target=license-update .
 
 .PHONY: run bin format lint proto-lint proto-generate clean help keychain-linux-unit-tests keychain-unit-tests validate-headers update-license-headers
+
+KEYCHAIN_REPRO_IMAGE ?= secrets-engine-keyring-repro
+KEYCHAIN_REPRO_ARGS ?= -workers 8 -iterations 1500
+
+.PHONY: keychain-gnome-repro
+keychain-gnome-repro: ## Reproduce concurrent Secret Service crashes in a disposable Ubuntu container
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t $(KEYCHAIN_REPRO_IMAGE) -f store/scripts/gnome-keyring-repro/Dockerfile .
+	docker run --rm --network=none $(KEYCHAIN_REPRO_IMAGE) $(KEYCHAIN_REPRO_ARGS)
